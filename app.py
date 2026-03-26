@@ -136,6 +136,50 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/brands")
+def api_brands():
+    """
+    Return a sorted list of brands, each with:
+      name, brand_img, flavour_count, sizes (sorted unique grams),
+      price_range {min, max} across all available formats.
+    """
+    flavours = get_catalogue()
+    brands: dict = {}
+    for f in flavours:
+        marca = f["marca"]
+        if not marca:
+            continue
+        if marca not in brands:
+            brands[marca] = {
+                "name":       marca,
+                "brand_img":  f.get("brand_img", ""),
+                "flavours":   [],
+            }
+        brands[marca]["flavours"].append(f)
+
+    result = []
+    for name, data in sorted(brands.items(), key=lambda x: x[0].lower()):
+        all_prices = [fmt["price"] for f in data["flavours"] for fmt in f["formatos"]]
+        all_sizes  = sorted({fmt["grams"] for f in data["flavours"] for fmt in f["formatos"]})
+        result.append({
+            "name":          name,
+            "brand_img":     data["brand_img"],
+            "flavour_count": len(data["flavours"]),
+            "sizes":         all_sizes,
+            "price_min":     min(all_prices) if all_prices else None,
+            "price_max":     max(all_prices) if all_prices else None,
+        })
+    return jsonify(result)
+
+
+@app.route("/api/brands/<path:brand_name>")
+def api_brand_flavours(brand_name: str):
+    """Return all flavours for a specific brand, sorted by name."""
+    flavours = [f for f in get_catalogue() if f["marca"] == brand_name]
+    flavours.sort(key=lambda f: f["nombre"].lower())
+    return jsonify(flavours)
+
+
 @app.route("/api/search")
 def api_search():
     q = request.args.get("q", "").strip()

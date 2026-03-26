@@ -703,6 +703,295 @@
       border-bottom: 1px solid var(--border);
     }
 
+    /* ── Brands grid ── */
+    .brands-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .brands-search {
+      flex: 1;
+      padding: 9px 14px 9px 38px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .18s;
+    }
+
+    .brands-search:focus { border-color: var(--amber); }
+    .brands-search::placeholder { color: var(--text-dim); }
+
+    .brands-search-wrap { position: relative; flex: 1; }
+    .brands-search-wrap .search-icon { font-size: .85rem; }
+
+    .brands-count {
+      font-size: .75rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .brand-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s, transform .12s;
+      text-align: center;
+    }
+
+    .brand-tile:hover {
+      border-color: var(--amber);
+      background: var(--card-hover);
+      transform: translateY(-2px);
+    }
+
+    .brand-tile-avatar {
+      width: 56px; height: 56px;
+      border-radius: 10px;
+      background: var(--amber-glow);
+      border: 1px solid rgba(201,152,58,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-tile-avatar img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    .brand-tile-avatar .brand-avatar-initials { font-size: 1rem; }
+
+    .brand-tile-name {
+      font-family: 'Playfair Display', serif;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .brand-tile-meta {
+      font-size: .68rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .brand-tile-price {
+      font-size: .72rem;
+      color: var(--amber);
+      font-weight: 500;
+    }
+
+    /* ── Brand detail view ── */
+    .brand-detail { display: none; }
+    .brand-detail.active { display: block; }
+
+    .brand-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 0 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .brand-detail-avatar {
+      width: 64px; height: 64px;
+      border-radius: 12px;
+      background: var(--amber-glow);
+      border: 1px solid rgba(201,152,58,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-detail-avatar img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+
+    .brand-detail-avatar .brand-avatar-initials { font-size: 1.2rem; }
+
+    .brand-detail-info { flex: 1; }
+
+    .brand-detail-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .brand-detail-stats {
+      font-size: .78rem;
+      color: var(--text-dim);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-detail-stats span { display: flex; align-items: center; gap: 4px; }
+    .brand-detail-stats strong { color: var(--amber); }
+
+    .back-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-hi);
+      background: none;
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .back-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* Size filter chips */
+    .size-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .size-filter-label {
+      font-size: .72rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-right: 2px;
+    }
+
+    .size-chip {
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border-hi);
+      background: none;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: .73rem;
+      cursor: pointer;
+      transition: all .14s;
+    }
+
+    .size-chip.active {
+      background: var(--amber-glow);
+      border-color: var(--amber);
+      color: var(--amber-hi);
+    }
+
+    .size-chip:hover:not(.active) { border-color: var(--text-sub); color: var(--text-sub); }
+
+    /* Brand flavour list — compact table style */
+    .brand-flavour-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bf-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color .15s, background .15s;
+    }
+
+    .bf-row:hover { border-color: var(--border-hi); background: var(--card-hover); }
+
+    .bf-row.hidden { display: none; }
+
+    .bf-name {
+      font-family: 'Playfair Display', serif;
+      font-size: .9rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bf-desc {
+      font-size: .75rem;
+      color: var(--text-dim);
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bf-prices {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .bf-price-tag {
+      font-size: .72rem;
+      color: var(--text-sub);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+
+    .bf-no-price {
+      font-size: .72rem;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .bf-add {
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--amber);
+      background: var(--amber-glow);
+      color: var(--amber);
+      font-family: inherit;
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background .14s;
+    }
+
+    .bf-add:hover { background: rgba(201,152,58,.22); }
+    .bf-add.flash { background: rgba(74,138,92,.2); border-color: var(--green); color: #6abf80; }
+
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -713,6 +1002,8 @@
       .cart-panel { border-left: none; border-top: 1px solid var(--border); max-height: 50vh; height: auto; }
       .main { height: auto; overflow-y: visible; }
       body { overflow-y: auto; }
+      .brand-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .bf-desc { display: none; }
     }
   </style>
 </head>
@@ -737,6 +1028,7 @@
   <main class="main">
     <div class="tabs">
       <button class="tab active" onclick="switchTab('search', this)">Search</button>
+      <button class="tab" onclick="switchTab('brands', this)">Brands</button>
       <button class="tab" onclick="switchTab('import', this)">Import list</button>
     </div>
 
@@ -750,6 +1042,40 @@
       </div>
       <div id="results-count" class="results-count"></div>
       <div id="results" class="results"></div>
+    </div>
+
+    <!-- Brands -->
+    <div id="panel-brands" class="panel">
+
+      <!-- Brand grid view -->
+      <div id="brands-grid-view">
+        <div class="brands-toolbar">
+          <div class="brands-search-wrap">
+            <span class="search-icon">&#9906;</span>
+            <input id="brands-filter" class="brands-search" type="text"
+                   placeholder="Filter brands…" autocomplete="off" />
+          </div>
+          <span class="brands-count" id="brands-count"></span>
+        </div>
+        <div id="brand-grid" class="brand-grid"></div>
+      </div>
+
+      <!-- Brand detail view -->
+      <div id="brands-detail-view" class="brand-detail">
+        <div class="brand-detail-header">
+          <button class="back-btn" onclick="showBrandGrid()">&#8592; All brands</button>
+          <div id="brand-detail-avatar" class="brand-detail-avatar"></div>
+          <div class="brand-detail-info">
+            <div id="brand-detail-name" class="brand-detail-name"></div>
+            <div id="brand-detail-stats" class="brand-detail-stats"></div>
+          </div>
+        </div>
+        <div class="size-filter-row" id="size-filter-row">
+          <span class="size-filter-label">Size</span>
+        </div>
+        <div id="brand-flavour-list" class="brand-flavour-list"></div>
+      </div>
+
     </div>
 
     <!-- Import -->
@@ -1227,6 +1553,240 @@ function buildImportRow(row) {
   div.appendChild(sizeRow);
   return div;
 }
+
+// ── Brands ────────────────────────────────────────────────────────────────────
+let _brandsData = null;          // full list from /api/brands
+let _activeSizeFilter = null;    // currently selected gram filter in detail view
+
+function buildAvatarForBrand(name, imgFile, size) {
+  const wrap = document.createElement('div');
+  wrap.className = size === 'large' ? 'brand-detail-avatar' : 'brand-tile-avatar';
+
+  if (imgFile) {
+    const img = document.createElement('img');
+    img.src = '/api/brand-img/' + encodeURIComponent(imgFile);
+    img.alt = name;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      img.remove();
+      wrap.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
+    };
+    wrap.appendChild(img);
+  } else {
+    wrap.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
+  }
+  return wrap;
+}
+
+async function loadBrandsGrid() {
+  if (_brandsData) { renderBrandsGrid(_brandsData); return; }
+
+  const grid = document.getElementById('brand-grid');
+  grid.textContent = '';
+  grid.appendChild(makeSpinner('Loading brands…'));
+
+  const res  = await fetch('/api/brands');
+  _brandsData = await res.json();
+  renderBrandsGrid(_brandsData);
+}
+
+function renderBrandsGrid(brands) {
+  const grid    = document.getElementById('brand-grid');
+  const countEl = document.getElementById('brands-count');
+  grid.textContent = '';
+
+  countEl.textContent = brands.length + ' brand' + (brands.length !== 1 ? 's' : '');
+
+  brands.forEach(function(b) {
+    const tile = document.createElement('div');
+    tile.className = 'brand-tile';
+    tile.dataset.name = b.name.toLowerCase();
+
+    tile.appendChild(buildAvatarForBrand(b.name, b.brand_img, 'small'));
+    tile.appendChild(makeEl('div', 'brand-tile-name', b.name));
+
+    const meta = document.createElement('div');
+    meta.className = 'brand-tile-meta';
+    meta.textContent = b.flavour_count + ' flavour' + (b.flavour_count !== 1 ? 's' : '');
+    tile.appendChild(meta);
+
+    if (b.price_min !== null) {
+      const price = document.createElement('div');
+      price.className = 'brand-tile-price';
+      if (b.price_min === b.price_max) {
+        price.textContent = b.price_min.toFixed(2) + '\u20AC';
+      } else {
+        price.textContent = b.price_min.toFixed(2) + ' \u2013 ' + b.price_max.toFixed(2) + '\u20AC';
+      }
+      tile.appendChild(price);
+    }
+
+    tile.addEventListener('click', function() { openBrand(b.name); });
+    grid.appendChild(tile);
+  });
+}
+
+// Live filter
+document.getElementById('brands-filter').addEventListener('input', function(e) {
+  const q = e.target.value.trim().toLowerCase();
+  document.querySelectorAll('.brand-tile').forEach(function(tile) {
+    tile.style.display = (!q || tile.dataset.name.includes(q)) ? '' : 'none';
+  });
+  const visible = document.querySelectorAll('.brand-tile:not([style*="none"])').length;
+  document.getElementById('brands-count').textContent =
+    visible + ' brand' + (visible !== 1 ? 's' : '');
+});
+
+async function openBrand(brandName) {
+  // Switch views
+  document.getElementById('brands-grid-view').style.display = 'none';
+  const detail = document.getElementById('brands-detail-view');
+  detail.classList.add('active');
+
+  // Clear old content
+  document.getElementById('brand-detail-name').textContent = brandName;
+  document.getElementById('brand-detail-stats').textContent = '';
+  document.getElementById('size-filter-row').textContent = '';
+  document.getElementById('brand-flavour-list').textContent = '';
+
+  // Re-build avatar
+  const avatarWrap = document.getElementById('brand-detail-avatar');
+  avatarWrap.textContent = '';
+  const brand = _brandsData && _brandsData.find(function(b) { return b.name === brandName; });
+  if (brand) {
+    const av = buildAvatarForBrand(brand.name, brand.brand_img, 'large');
+    av.className = 'brand-detail-avatar';
+    avatarWrap.appendChild(av.firstChild || av);
+    // restore correct class on wrapper
+    avatarWrap.className = 'brand-detail-avatar';
+    // re-append children
+    while (av.firstChild) avatarWrap.appendChild(av.firstChild);
+  }
+
+  const listEl = document.getElementById('brand-flavour-list');
+  listEl.appendChild(makeSpinner('Loading flavours…'));
+
+  const res      = await fetch('/api/brands/' + encodeURIComponent(brandName));
+  const flavours = await res.json();
+  listEl.textContent = '';
+
+  // Stats
+  const statsEl = document.getElementById('brand-detail-stats');
+  const allPrices = flavours.flatMap(function(f) { return f.formatos.map(function(fmt) { return fmt.price; }); });
+  const allSizes  = [...new Set(flavours.flatMap(function(f) { return f.formatos.map(function(fmt) { return fmt.grams; }); }))].sort(function(a,b){return a-b;});
+
+  function makeStat(label, value) {
+    const s = document.createElement('span');
+    const strong = document.createElement('strong');
+    strong.textContent = value;
+    s.appendChild(document.createTextNode(label + '\u00a0'));
+    s.appendChild(strong);
+    return s;
+  }
+
+  statsEl.appendChild(makeStat('', flavours.length + ' flavours'));
+  if (allPrices.length) {
+    statsEl.appendChild(makeStat('from\u00a0', Math.min(...allPrices).toFixed(2) + '\u20AC'));
+    statsEl.appendChild(makeStat('to\u00a0', Math.max(...allPrices).toFixed(2) + '\u20AC'));
+  }
+  if (allSizes.length) {
+    statsEl.appendChild(makeStat('sizes\u00a0', allSizes.join('g, ') + 'g'));
+  }
+
+  // Size filter chips
+  _activeSizeFilter = null;
+  const filterRow = document.getElementById('size-filter-row');
+
+  const sizeLabel = makeEl('span', 'size-filter-label', 'Filter by size');
+  filterRow.appendChild(sizeLabel);
+
+  const allChip = makeEl('button', 'size-chip active', 'All');
+  allChip.addEventListener('click', function() {
+    _activeSizeFilter = null;
+    filterRow.querySelectorAll('.size-chip').forEach(function(c) { c.classList.remove('active'); });
+    allChip.classList.add('active');
+    applyBrandSizeFilter(null);
+  });
+  filterRow.appendChild(allChip);
+
+  allSizes.forEach(function(g) {
+    const chip = makeEl('button', 'size-chip', g + 'g');
+    chip.addEventListener('click', function() {
+      _activeSizeFilter = g;
+      filterRow.querySelectorAll('.size-chip').forEach(function(c) { c.classList.remove('active'); });
+      chip.classList.add('active');
+      applyBrandSizeFilter(g);
+    });
+    filterRow.appendChild(chip);
+  });
+
+  // Flavour rows
+  flavours.forEach(function(f) {
+    listEl.appendChild(buildBrandFlavourRow(f));
+  });
+}
+
+function applyBrandSizeFilter(grams) {
+  document.querySelectorAll('.bf-row').forEach(function(row) {
+    if (!grams) { row.classList.remove('hidden'); return; }
+    const sizes = row.dataset.sizes ? row.dataset.sizes.split(',').map(Number) : [];
+    row.classList.toggle('hidden', !sizes.includes(grams));
+  });
+}
+
+function buildBrandFlavourRow(f) {
+  const row = document.createElement('div');
+  row.className = 'bf-row';
+  row.dataset.sizes = f.formatos.map(function(fmt) { return fmt.grams; }).join(',');
+
+  row.appendChild(makeEl('div', 'bf-name', f.nombre));
+
+  if (f.descripcion) {
+    row.appendChild(makeEl('div', 'bf-desc', f.descripcion));
+  }
+
+  const pricesWrap = document.createElement('div');
+  pricesWrap.className = 'bf-prices';
+
+  if (f.formatos && f.formatos.length) {
+    f.formatos.forEach(function(fmt) {
+      pricesWrap.appendChild(makeEl('span', 'bf-price-tag',
+        fmt.grams + 'g\u00a0' + fmt.price.toFixed(2) + '\u20AC'));
+    });
+  } else {
+    pricesWrap.appendChild(makeEl('span', 'bf-no-price', 'no price'));
+  }
+  row.appendChild(pricesWrap);
+
+  if (f.formatos && f.formatos.length) {
+    const addBtn = makeEl('button', 'bf-add', '+ Cart');
+    addBtn.addEventListener('click', function() {
+      // Add cheapest/first size
+      const fmt = f.formatos[0];
+      const existing = cart.find(function(i) { return i.id === f.id && i.selectedGrams === fmt.grams; });
+      if (existing) { existing.qty++; }
+      else { cart.push({ id: f.id, nombre: f.nombre, marca: f.marca, formatos: f.formatos,
+                         selectedGrams: fmt.grams, selectedPrice: fmt.price, qty: 1 }); }
+      renderCart();
+      flashBtn(addBtn, 'Added!', true);
+    });
+    row.appendChild(addBtn);
+  }
+
+  return row;
+}
+
+function showBrandGrid() {
+  document.getElementById('brands-detail-view').classList.remove('active');
+  document.getElementById('brands-grid-view').style.display = '';
+}
+
+// Patch switchTab to lazy-load brands
+const _origSwitchTab = switchTab;
+switchTab = function(name, btn) {
+  _origSwitchTab(name, btn);
+  if (name === 'brands') { loadBrandsGrid(); }
+};
 </script>
 </body>
 </html>

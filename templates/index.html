@@ -6,109 +6,43 @@
   <title>Hookymia — Flavour Shop</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Theme: Smoke (default dark amber) ── */
-    :root, [data-theme="smoke"] {
-      --bg:         #090909;
-      --surface:    #111113;
-      --card:       #18181b;
-      --card-hover: #1e1e22;
-      --border:     #252529;
-      --border-hi:  #333338;
-      --accent:     #c9983a;
-      --accent-hi:  #e0b45a;
-      --accent-glow: rgba(201,152,58,.1);
-      --accent-ring: rgba(201,152,58,.22);
-      --text:       #e4ddd2;
-      --text-sub:   #9a9088;
-      --text-dim:   #5a554f;
-      --red:        #a05050;
-      --green:      #4a8a5c;
-      --radius:     12px;
-      --radius-sm:  7px;
+    :root {
+      --bg:         #0c0c0e;
+      --surface:    #131316;
+      --card:       #1a1a1f;
+      --card-hover: #202026;
+      --border:     #27272e;
+      --border-hi:  #38383f;
+      --accent:     #6c63ff;
+      --accent-hi:  #8b84ff;
+      --amber:      #6c63ff;
+      --amber-hi:   #8b84ff;
+      --amber-glow: rgba(108,99,255,.12);
+      --amber-ring: rgba(108,99,255,.28);
+      --accent-glow: rgba(108,99,255,.12);
+      --accent-ring: rgba(108,99,255,.28);
+      --text:       #f0f0f4;
+      --text-sub:   #8888a0;
+      --text-dim:   #44444f;
+      --red:        #e05555;
+      --green:      #40b070;
+      --radius:     10px;
+      --radius-sm:  6px;
     }
-
-    /* ── Theme: Ember (dark red/crimson) ── */
-    [data-theme="ember"] {
-      --bg:         #0a0708;
-      --surface:    #130d0e;
-      --card:       #1a1112;
-      --card-hover: #201518;
-      --border:     #2c1a1d;
-      --border-hi:  #3d2428;
-      --accent:     #c0404a;
-      --accent-hi:  #e05560;
-      --accent-glow: rgba(192,64,74,.12);
-      --accent-ring: rgba(192,64,74,.25);
-      --text:       #f0e0e2;
-      --text-sub:   #9a7880;
-      --text-dim:   #5a3840;
-      --red:        #b05060;
-      --green:      #4a8a5c;
-    }
-
-    /* ── Theme: Jade (dark green) ── */
-    [data-theme="jade"] {
-      --bg:         #070a08;
-      --surface:    #0e1310;
-      --card:       #141a15;
-      --card-hover: #182019;
-      --border:     #1e2a20;
-      --border-hi:  #2a3a2c;
-      --accent:     #3a9e60;
-      --accent-hi:  #50c078;
-      --accent-glow: rgba(58,158,96,.1);
-      --accent-ring: rgba(58,158,96,.22);
-      --text:       #d8eedc;
-      --text-sub:   #7a9882;
-      --text-dim:   #3a5840;
-      --red:        #a05050;
-      --green:      #3a9e60;
-    }
-
-    /* ── Theme: Dusk (muted purple/slate) ── */
-    [data-theme="dusk"] {
-      --bg:         #09080d;
-      --surface:    #110f18;
-      --card:       #181520;
-      --card-hover: #1e1a28;
-      --border:     #252130;
-      --border-hi:  #332e42;
-      --accent:     #8b6fc0;
-      --accent-hi:  #a888e0;
-      --accent-glow: rgba(139,111,192,.1);
-      --accent-ring: rgba(139,111,192,.22);
-      --text:       #e0dcea;
-      --text-sub:   #8880a0;
-      --text-dim:   #504868;
-      --red:        #a05070;
-      --green:      #4a8a6c;
-    }
-
-    /* Remap amber → accent throughout */
-    :root { --amber: var(--accent); --amber-hi: var(--accent-hi);
-            --amber-glow: var(--accent-glow); --amber-ring: var(--accent-ring); }
 
     html, body { height: 100%; }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 400;
       line-height: 1.5;
-    }
-
-    /* ── Grain texture overlay ── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* ── Layout ── */
@@ -135,59 +69,28 @@
     }
 
     .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.35rem;
+      font-size: 1.05rem;
       font-weight: 700;
-      color: var(--amber);
-      letter-spacing: .04em;
+      color: var(--text);
+      letter-spacing: -.01em;
       flex-shrink: 0;
     }
 
-    .logo-sep {
-      width: 1px; height: 20px;
-      background: var(--border);
-    }
-
-    .logo-sub {
-      font-size: .78rem;
-      color: var(--text-dim);
-      font-style: italic;
-      letter-spacing: .04em;
+    .logo em {
+      color: var(--accent);
+      font-style: normal;
     }
 
     .header-right {
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .catalogue-meta {
-      font-size: .75rem;
+      font-size: .72rem;
       color: var(--text-dim);
-      text-align: right;
-      line-height: 1.3;
-    }
-
-    .catalogue-meta strong { color: var(--text-sub); font-weight: 500; }
-
-    .theme-btn {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      border: 1px solid var(--border-hi);
-      background: none;
-      color: var(--text-sub);
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all .18s;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .theme-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-glow);
     }
 
     /* ── Main ── */
@@ -310,7 +213,7 @@
     }
 
     .brand-avatar-initials {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .95rem;
       font-weight: 700;
       color: var(--amber);
@@ -339,7 +242,7 @@
     }
 
     .flavour-name {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .98rem;
       font-weight: 600;
       color: var(--text);
@@ -443,7 +346,7 @@
       border: none;
       background: var(--amber);
       color: #0a0a0a;
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .95rem;
       font-weight: 700;
       cursor: pointer;
@@ -508,7 +411,7 @@
     }
 
     .cart-title {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: 1rem;
       color: var(--text);
     }
@@ -584,7 +487,7 @@
     }
 
     .ci-name {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .88rem;
       color: var(--text);
       white-space: nowrap;
@@ -701,7 +604,7 @@
     }
 
     .cart-total-value {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: 1.8rem;
       color: var(--amber-hi);
       font-weight: 700;
@@ -837,7 +740,7 @@
     .brand-tile-avatar .brand-avatar-initials { font-size: 1rem; }
 
     .brand-tile-name {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .82rem;
       font-weight: 600;
       color: var(--text);
@@ -892,7 +795,7 @@
     .brand-detail-info { flex: 1; }
 
     .brand-detail-name {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--text);
@@ -993,7 +896,7 @@
     }
 
     .bf-name {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Inter', sans-serif;
       font-size: .9rem;
       font-weight: 600;
       white-space: nowrap;
@@ -1073,7 +976,6 @@
     <span class="logo">Estanquero Cabr&#243;n</span>
     <div class="header-right">
       <div class="catalogue-meta" id="catalogue-meta"></div>
-      <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" title="Change theme">&#9681;</button>
     </div>
   </header>
 
@@ -1196,26 +1098,6 @@ function switchTab(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
 }
-
-// ── Themes ────────────────────────────────────────────────────────────────────
-const THEMES = ['smoke', 'ember', 'jade', 'dusk'];
-const THEME_ICONS = { smoke: '\u25D1', ember: '\uD83D\uDD25', jade: '\u25C6', dusk: '\u2605' };
-
-function applyTheme(name) {
-  document.documentElement.setAttribute('data-theme', name);
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = THEME_ICONS[name] || '\u25D1';
-  sessionStorage.setItem('theme', name);
-}
-
-function cycleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'smoke';
-  const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
-  applyTheme(next);
-}
-
-// Apply saved theme immediately
-applyTheme(sessionStorage.getItem('theme') || 'smoke');
 
 // ── Search ────────────────────────────────────────────────────────────────────
 let searchTimer = null;

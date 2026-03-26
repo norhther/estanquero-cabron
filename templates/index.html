@@ -922,7 +922,7 @@
       padding: 10px 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       transition: border-color .15s, background .15s;
     }
 
@@ -930,22 +930,26 @@
 
     .bf-row.hidden { display: none; }
 
+    .bf-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
     .bf-name {
       font-family: 'Playfair Display', serif;
       font-size: .9rem;
       font-weight: 600;
-      flex: 1;
-      min-width: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .bf-desc {
-      font-size: .75rem;
+      font-size: .74rem;
       color: var(--text-dim);
-      flex: 1;
-      min-width: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1739,11 +1743,13 @@ function buildBrandFlavourRow(f) {
   row.className = 'bf-row';
   row.dataset.sizes = f.formatos.map(function(fmt) { return fmt.grams; }).join(',');
 
-  row.appendChild(makeEl('div', 'bf-name', f.nombre));
-
+  const info = document.createElement('div');
+  info.className = 'bf-info';
+  info.appendChild(makeEl('div', 'bf-name', f.nombre));
   if (f.descripcion) {
-    row.appendChild(makeEl('div', 'bf-desc', f.descripcion));
+    info.appendChild(makeEl('div', 'bf-desc', f.descripcion));
   }
+  row.appendChild(info);
 
   const pricesWrap = document.createElement('div');
   pricesWrap.className = 'bf-prices';

@@ -125,23 +125,67 @@ def _normalize(text: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
 
 
-def fuzzy_search(query: str, flavours: list, limit: int = 30) -> list:
+def _score(query: str, flavour: dict) -> float:
+    """
+    Multi-signal score for a single flavour against a query.
+
+    Signals (all 0-100):
+      - token_set_ratio on full text (name + brand + description)
+      - WRatio on name only  (handles abbreviations & partial matches well)
+      - WRatio on query vs name-only when brand prefix is stripped
+      - +25 bonus if query is an exact substring of the full text
+      - +15 bonus if every query word appears somewhere in the full text
+    """
     from rapidfuzz import fuzz
+
+    q    = _normalize(query)
+    name = _normalize(flavour["nombre"])
+    brand = _normalize(flavour["marca"])
+    full = f"{name} {brand} {_normalize(flavour['descripcion'])}"
+
+    # Strip brand prefix from query to focus on flavour name
+    q_stripped = q
+    if brand and q.startswith(brand):
+        q_stripped = q[len(brand):].strip()
+    elif brand:
+        # remove brand words from query wherever they appear
+        for word in brand.split():
+            if len(word) > 2:
+                q_stripped = q_stripped.replace(word, "").strip()
+
+    s1 = fuzz.token_set_ratio(q, full)
+    s2 = fuzz.WRatio(q, name)
+    s3 = fuzz.WRatio(q_stripped, name) if q_stripped != q else s2
+
+    score = max(s1, s2, s3)
+
+    # Exact substring bonus
+    if q in full:
+        score = min(100, score + 25)
+
+    # All-words-present bonus
+    words = [w for w in q.split() if len(w) > 2]
+    if words and all(w in full for w in words):
+        score = min(100, score + 15)
+
+    return score
+
+
+def fuzzy_search(query: str, flavours: list, limit: int = 30) -> list:
     q = _normalize(query)
-    scored = []
-    for f in flavours:
-        text = _normalize(f"{f['nombre']} {f['marca']} {f['descripcion']}")
-        score = fuzz.token_set_ratio(q, text)
-        if q in text:
-            score = min(100, score + 20)
-        scored.append((score, f))
+    scored = [(  _score(q, f), f) for f in flavours]
     scored.sort(key=lambda x: -x[0])
-    return [f for score, f in scored[:limit] if score >= 40]
+    return [f for score, f in scored[:limit] if score >= 45]
 
 
 def best_match(query: str, flavours: list):
-    results = fuzzy_search(query, flavours, limit=1)
-    return results[0] if results else None
+    """Return the single best match with score >= 55 (stricter for import)."""
+    from rapidfuzz import fuzz as _fuzz  # ensure import
+    scored = [(_score(_normalize(query), f), f) for f in flavours]
+    scored.sort(key=lambda x: -x[0])
+    if scored and scored[0][0] >= 55:
+        return scored[0][1]
+    return None
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

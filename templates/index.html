@@ -1573,8 +1573,12 @@ function buildImportRow(row) {
   matchHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:8px';
   matchHeader.appendChild(buildBrandAvatar(f));
   const matchInfo = document.createElement('div');
+  matchInfo.style.minWidth = '0';
   matchInfo.appendChild(makeEl('div', 'flavour-brand', f.marca));
   matchInfo.appendChild(makeEl('div', 'flavour-name', f.nombre));
+  if (f.descripcion) {
+    matchInfo.appendChild(makeEl('div', 'flavour-desc', f.descripcion));
+  }
   matchHeader.appendChild(matchInfo);
   div.appendChild(matchHeader);
 

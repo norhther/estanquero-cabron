@@ -1,11 +1,12 @@
 """
 Hookymia Flavour Shop — Flask web app.
 
-Caches the full catalogue in memory on first request (or on demand via /refresh).
-Exposes endpoints for fuzzy search, list import, and catalogue browsing.
+Catalogue is persisted to data/catalogue.json and loaded from disk on startup.
+Fetching from the remote API only happens when explicitly requested via /api/refresh.
 """
 
 import json
+import os
 import time
 import unicodedata
 from flask import Flask, jsonify, render_template, request
@@ -15,16 +16,17 @@ from flavours import parse_formatos
 
 app = Flask(__name__)
 
-# ── In-memory cache ──────────────────────────────────────────────────────────
+# ── Persistence ───────────────────────────────────────────────────────────────
 
-_cache: dict = {"flavours": [], "brands": {}, "loaded_at": 0}
+DATA_DIR      = os.path.join(os.path.dirname(__file__), "data")
+CATALOGUE_PATH = os.path.join(DATA_DIR, "catalogue.json")
+API_URL       = "https://hookymia.es/api/get/index.php"
 
-API_URL = "https://hookymia.es/api/get/index.php"
-CACHE_TTL = 3600  # seconds
+_cache: dict = {"flavours": [], "loaded_at": 0}
 
 
 def _fetch(tipo: str) -> list:
-    r = req.post(API_URL, data={"tipo": tipo}, timeout=15)
+    r = req.post(API_URL, data={"tipo": tipo}, timeout=20)
     r.raise_for_status()
     raw = r.json().get("respuesta", [])
     if isinstance(raw, str):
@@ -32,15 +34,8 @@ def _fetch(tipo: str) -> list:
     return raw or []
 
 
-def load_catalogue(force: bool = False) -> list:
-    now = time.time()
-    if not force and _cache["flavours"] and (now - _cache["loaded_at"]) < CACHE_TTL:
-        return _cache["flavours"]
-
-    marcas_raw = _fetch("getListaMarcas")
+def _build_flavours(marcas_raw: list, sabores_raw: list) -> list:
     brands = {m["id"]: m["nombre"] for m in marcas_raw}
-
-    sabores_raw = _fetch("getListaSabores")
     flavours = []
     for s in sabores_raw:
         if s.get("retirado", "0") == "1":
@@ -53,50 +48,76 @@ def load_catalogue(force: bool = False) -> list:
             "formatos":    parse_formatos(s.get("formatos", "")),
             "img":         s.get("img", ""),
         })
-
-    _cache["flavours"] = flavours
-    _cache["brands"] = brands
-    _cache["loaded_at"] = now
     return flavours
 
 
-# ── Fuzzy matching helpers ────────────────────────────────────────────────────
+def _save_to_disk(flavours: list, loaded_at: float) -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(CATALOGUE_PATH, "w", encoding="utf-8") as f:
+        json.dump({"loaded_at": loaded_at, "flavours": flavours}, f, ensure_ascii=False)
+
+
+def _load_from_disk() -> bool:
+    """Load catalogue from disk into cache. Returns True if successful."""
+    if not os.path.exists(CATALOGUE_PATH):
+        return False
+    try:
+        with open(CATALOGUE_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        _cache["flavours"] = data["flavours"]
+        _cache["loaded_at"] = data["loaded_at"]
+        return True
+    except (json.JSONDecodeError, KeyError, OSError):
+        return False
+
+
+def get_catalogue() -> list:
+    """Return cached flavours, loading from disk on first call."""
+    if not _cache["flavours"]:
+        _load_from_disk()
+    return _cache["flavours"]
+
+
+def refresh_from_api() -> dict:
+    """Fetch fresh data from the API, update cache and disk."""
+    marcas_raw  = _fetch("getListaMarcas")
+    sabores_raw = _fetch("getListaSabores")
+    flavours    = _build_flavours(marcas_raw, sabores_raw)
+    loaded_at   = time.time()
+
+    _cache["flavours"]  = flavours
+    _cache["loaded_at"] = loaded_at
+    _save_to_disk(flavours, loaded_at)
+    return {"count": len(flavours), "loaded_at": loaded_at}
+
+
+# ── Fuzzy search ──────────────────────────────────────────────────────────────
 
 def _normalize(text: str) -> str:
-    """Lowercase + strip accents."""
     nfkd = unicodedata.normalize("NFKD", text)
     return "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
 
 
-def fuzzy_search(query: str, flavours: list, limit: int = 20) -> list:
-    """
-    Score each flavour against the query.
-    Uses rapidfuzz for token-set ratio (handles word order, partial matches, typos).
-    Falls back to simple substring matching.
-    """
+def fuzzy_search(query: str, flavours: list, limit: int = 30) -> list:
     from rapidfuzz import fuzz
-
     q = _normalize(query)
     scored = []
     for f in flavours:
         text = _normalize(f"{f['nombre']} {f['marca']} {f['descripcion']}")
         score = fuzz.token_set_ratio(q, text)
-        # Boost exact substring hits
         if q in text:
             score = min(100, score + 20)
         scored.append((score, f))
-
     scored.sort(key=lambda x: -x[0])
     return [f for score, f in scored[:limit] if score >= 40]
 
 
 def best_match(query: str, flavours: list):
-    """Return the single best match for a query line."""
     results = fuzzy_search(query, flavours, limit=1)
     return results[0] if results else None
 
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
@@ -108,52 +129,45 @@ def api_search():
     q = request.args.get("q", "").strip()
     if not q:
         return jsonify([])
-    flavours = load_catalogue()
-    results = fuzzy_search(q, flavours, limit=30)
-    return jsonify(results)
+    return jsonify(fuzzy_search(q, get_catalogue(), limit=30))
 
 
 @app.route("/api/import", methods=["POST"])
 def api_import():
-    """
-    Accept a raw paste (one item per line) and return the best match per line.
-    Body: {"lines": ["line1", "line2", ...]}
-    """
-    data = request.get_json(force=True)
+    data  = request.get_json(force=True)
     lines = data.get("lines", [])
-    flavours = load_catalogue()
-
-    results = []
+    flavours = get_catalogue()
+    results  = []
     for line in lines:
-        line = line.strip()
-        # Handle comma-separated items on one line (e.g. "Dozaj lux, dark purple, rgasm")
-        parts = [p.strip() for p in line.split(",") if p.strip()]
-        for part in parts:
-            match = best_match(part, flavours)
-            results.append({
-                "query":  part,
-                "match":  match,
-            })
+        for part in [p.strip() for p in line.strip().split(",") if p.strip()]:
+            results.append({"query": part, "match": best_match(part, flavours)})
     return jsonify(results)
 
 
 @app.route("/api/refresh", methods=["POST"])
 def api_refresh():
-    load_catalogue(force=True)
-    return jsonify({"ok": True, "count": len(_cache["flavours"])})
+    try:
+        info = refresh_from_api()
+        return jsonify({"ok": True, **info})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 502
 
 
 @app.route("/api/stats")
 def api_stats():
-    flavours = load_catalogue()
+    get_catalogue()
     return jsonify({
-        "count": len(flavours),
+        "count":     len(_cache["flavours"]),
         "loaded_at": _cache["loaded_at"],
+        "from_disk": os.path.exists(CATALOGUE_PATH),
     })
 
 
 if __name__ == "__main__":
-    print("Pre-loading catalogue...")
-    load_catalogue()
-    print(f"  {len(_cache['flavours'])} flavours loaded.")
+    if _load_from_disk():
+        print(f"Loaded {len(_cache['flavours'])} flavours from disk.")
+    else:
+        print("No local catalogue found — fetching from API…")
+        refresh_from_api()
+        print(f"  {len(_cache['flavours'])} flavours saved.")
     app.run(debug=True, port=5000)

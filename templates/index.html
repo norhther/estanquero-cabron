@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hookymia — Flavour Shop</title>
+  <title>Estanquero Cabrón</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -91,6 +91,16 @@
     .catalogue-meta {
       font-size: .72rem;
       color: var(--text-dim);
+    }
+
+    .disclaimer {
+      font-size: .72rem;
+      color: var(--text-sub);
+      background: rgba(108,99,255,.07);
+      border: 1px solid rgba(108,99,255,.18);
+      border-radius: var(--radius-sm);
+      padding: 3px 10px;
+      white-space: nowrap;
     }
 
     /* ── Main ── */
@@ -975,6 +985,7 @@
   <header>
     <span class="logo">Estanquero Cabr&#243;n</span>
     <div class="header-right">
+      <span class="disclaimer">&#128683; No online purchase — prepare your list before visiting</span>
       <div class="catalogue-meta" id="catalogue-meta"></div>
     </div>
   </header>
@@ -1041,9 +1052,14 @@
       </p>
       <textarea id="import-area" class="import-area"
         placeholder="Ornj team&#10;Breezzy bum (serbetli)&#10;#15 Grüner marrokaner&#10;Hype hater&#10;Dozaj lux, dark purple, rgasm"></textarea>
-      <button class="import-btn" id="import-btn" onclick="runImport()">
-        <span>&#10003;</span> Find matches
-      </button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="import-btn" id="import-btn" onclick="runImport()">
+          <span>&#10003;</span> Find matches
+        </button>
+        <button class="import-btn" id="import-add-btn" onclick="addAllMatches()" style="display:none;background:var(--green)">
+          <span>&#43;</span> Add all to cart
+        </button>
+      </div>
       <div id="import-result" class="import-result"></div>
     </div>
   </main>
@@ -1403,15 +1419,20 @@ function clearCart() {
 }
 
 // ── Import ────────────────────────────────────────────────────────────────────
+let _importMatches = [];
+
 async function runImport() {
   const raw = document.getElementById('import-area').value.trim();
   if (!raw) return;
 
   const btn     = document.getElementById('import-btn');
+  const addBtn  = document.getElementById('import-add-btn');
   const resultEl = document.getElementById('import-result');
   const lines   = raw.split('\n').filter(function(l) { return l.trim(); });
 
   btn.disabled = true;
+  addBtn.style.display = 'none';
+  _importMatches = [];
   resultEl.textContent = '';
   resultEl.appendChild(makeSpinner('Finding matches…'));
 
@@ -1422,6 +1443,8 @@ async function runImport() {
   });
   const data = await res.json();
 
+  _importMatches = data.filter(function(r) { return r.match; }).map(function(r) { return r.match; });
+
   resultEl.textContent = '';
   if (data.length) {
     const label = makeEl('div', 'section-label',
@@ -1430,7 +1453,23 @@ async function runImport() {
   }
   data.forEach(function(row) { resultEl.appendChild(buildImportRow(row)); });
 
+  if (_importMatches.length) addBtn.style.display = '';
   btn.disabled = false;
+}
+
+function addAllMatches() {
+  _importMatches.forEach(function(f) {
+    if (!f.formatos || !f.formatos.length) return;
+    const fmt = f.formatos[0];
+    const existing = cart.find(function(c) { return c.id === f.id && c.selectedGrams === fmt.grams; });
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      cart.push({ id: f.id, nombre: f.nombre, marca: f.marca, formatos: f.formatos,
+        selectedGrams: fmt.grams, selectedPrice: fmt.price, qty: 1 });
+    }
+  });
+  renderCart();
 }
 
 function buildImportRow(row) {

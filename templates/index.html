@@ -10,17 +10,18 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
+    /* ── Theme: Smoke (default dark amber) ── */
+    :root, [data-theme="smoke"] {
       --bg:         #090909;
       --surface:    #111113;
       --card:       #18181b;
       --card-hover: #1e1e22;
       --border:     #252529;
       --border-hi:  #333338;
-      --amber:      #c9983a;
-      --amber-hi:   #e0b45a;
-      --amber-glow: rgba(201,152,58,.1);
-      --amber-ring: rgba(201,152,58,.22);
+      --accent:     #c9983a;
+      --accent-hi:  #e0b45a;
+      --accent-glow: rgba(201,152,58,.1);
+      --accent-ring: rgba(201,152,58,.22);
       --text:       #e4ddd2;
       --text-sub:   #9a9088;
       --text-dim:   #5a554f;
@@ -29,6 +30,67 @@
       --radius:     12px;
       --radius-sm:  7px;
     }
+
+    /* ── Theme: Ember (dark red/crimson) ── */
+    [data-theme="ember"] {
+      --bg:         #0a0708;
+      --surface:    #130d0e;
+      --card:       #1a1112;
+      --card-hover: #201518;
+      --border:     #2c1a1d;
+      --border-hi:  #3d2428;
+      --accent:     #c0404a;
+      --accent-hi:  #e05560;
+      --accent-glow: rgba(192,64,74,.12);
+      --accent-ring: rgba(192,64,74,.25);
+      --text:       #f0e0e2;
+      --text-sub:   #9a7880;
+      --text-dim:   #5a3840;
+      --red:        #b05060;
+      --green:      #4a8a5c;
+    }
+
+    /* ── Theme: Jade (dark green) ── */
+    [data-theme="jade"] {
+      --bg:         #070a08;
+      --surface:    #0e1310;
+      --card:       #141a15;
+      --card-hover: #182019;
+      --border:     #1e2a20;
+      --border-hi:  #2a3a2c;
+      --accent:     #3a9e60;
+      --accent-hi:  #50c078;
+      --accent-glow: rgba(58,158,96,.1);
+      --accent-ring: rgba(58,158,96,.22);
+      --text:       #d8eedc;
+      --text-sub:   #7a9882;
+      --text-dim:   #3a5840;
+      --red:        #a05050;
+      --green:      #3a9e60;
+    }
+
+    /* ── Theme: Dusk (muted purple/slate) ── */
+    [data-theme="dusk"] {
+      --bg:         #09080d;
+      --surface:    #110f18;
+      --card:       #181520;
+      --card-hover: #1e1a28;
+      --border:     #252130;
+      --border-hi:  #332e42;
+      --accent:     #8b6fc0;
+      --accent-hi:  #a888e0;
+      --accent-glow: rgba(139,111,192,.1);
+      --accent-ring: rgba(139,111,192,.22);
+      --text:       #e0dcea;
+      --text-sub:   #8880a0;
+      --text-dim:   #504868;
+      --red:        #a05070;
+      --green:      #4a8a6c;
+    }
+
+    /* Remap amber → accent throughout */
+    :root { --amber: var(--accent); --amber-hi: var(--accent-hi);
+            --amber-glow: var(--accent-glow); --amber-ring: var(--accent-ring); }
 
     html, body { height: 100%; }
 
@@ -109,32 +171,24 @@
 
     .catalogue-meta strong { color: var(--text-sub); font-weight: 500; }
 
-    .refresh-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
+    .theme-btn {
+      width: 32px; height: 32px;
       border-radius: 8px;
       border: 1px solid var(--border-hi);
       background: none;
       color: var(--text-sub);
-      font-family: inherit;
-      font-size: .78rem;
+      font-size: 1rem;
       cursor: pointer;
       transition: all .18s;
-      white-space: nowrap;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
 
-    .refresh-btn:hover {
-      border-color: var(--amber);
-      color: var(--amber);
-      background: var(--amber-glow);
+    .theme-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
     }
-
-    .refresh-btn.loading { opacity: .5; pointer-events: none; }
-
-    .refresh-icon { font-size: .9rem; transition: transform .6s; }
-    .refresh-btn.loading .refresh-icon { animation: spin .7s linear infinite; }
 
     /* ── Main ── */
     .main {
@@ -1016,15 +1070,10 @@
 
   <!-- Header -->
   <header>
-    <span class="logo">Hookymia</span>
-    <div class="logo-sep"></div>
-    <span class="logo-sub">flavour shop</span>
+    <span class="logo">Estanquero Cabr&#243;n</span>
     <div class="header-right">
-      <div class="catalogue-meta" id="catalogue-meta">loading…</div>
-      <button class="refresh-btn" id="refresh-btn" onclick="refreshCatalogue()">
-        <span class="refresh-icon" id="refresh-icon">&#8635;</span>
-        Sync
-      </button>
+      <div class="catalogue-meta" id="catalogue-meta"></div>
+      <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" title="Change theme">&#9681;</button>
     </div>
   </header>
 
@@ -1137,22 +1186,7 @@ const cart = [];
 
 function updateCatalogueMeta(d) {
   const el = document.getElementById('catalogue-meta');
-  const count = d.count ? d.count.toLocaleString() + ' flavours' : '—';
-  const ago   = d.loaded_at ? timeAgo(d.loaded_at) : 'never';
-  el.textContent = '';
-
-  const countLine = document.createElement('strong');
-  countLine.textContent = count;
-  el.appendChild(countLine);
-  el.appendChild(document.createTextNode('\u00a0\u00b7 updated ' + ago));
-}
-
-function timeAgo(ts) {
-  const diff = Math.floor(Date.now() / 1000 - ts);
-  if (diff < 60)   return 'just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-  return Math.floor(diff / 86400) + 'd ago';
+  el.textContent = d.count ? d.count.toLocaleString() + ' flavours' : '';
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -1163,33 +1197,25 @@ function switchTab(name, btn) {
   btn.classList.add('active');
 }
 
-// ── Catalogue refresh ─────────────────────────────────────────────────────────
-async function refreshCatalogue() {
-  const btn  = document.getElementById('refresh-btn');
-  const icon = document.getElementById('refresh-icon');
-  btn.classList.add('loading');
-  btn.textContent = '';
-  btn.appendChild(icon);
-  btn.appendChild(document.createTextNode(' Syncing…'));
+// ── Themes ────────────────────────────────────────────────────────────────────
+const THEMES = ['smoke', 'ember', 'jade', 'dusk'];
+const THEME_ICONS = { smoke: '\u25D1', ember: '\uD83D\uDD25', jade: '\u25C6', dusk: '\u2605' };
 
-  try {
-    const res  = await fetch('/api/refresh', { method: 'POST' });
-    const data = await res.json();
-    if (data.ok) {
-      updateCatalogueMeta(data);
-    } else {
-      alert('Sync failed: ' + (data.error || 'unknown error'));
-    }
-  } catch (e) {
-    alert('Network error during sync.');
-  }
-
-  btn.classList.remove('loading');
-  btn.textContent = '';
-  icon.textContent = '\u21BB';
-  btn.appendChild(icon);
-  btn.appendChild(document.createTextNode(' Sync'));
+function applyTheme(name) {
+  document.documentElement.setAttribute('data-theme', name);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = THEME_ICONS[name] || '\u25D1';
+  sessionStorage.setItem('theme', name);
 }
+
+function cycleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'smoke';
+  const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+  applyTheme(next);
+}
+
+// Apply saved theme immediately
+applyTheme(sessionStorage.getItem('theme') || 'smoke');
 
 // ── Search ────────────────────────────────────────────────────────────────────
 let searchTimer = null;
@@ -1562,23 +1588,28 @@ function buildImportRow(row) {
 let _brandsData = null;          // full list from /api/brands
 let _activeSizeFilter = null;    // currently selected gram filter in detail view
 
-function buildAvatarForBrand(name, imgFile, size) {
-  const wrap = document.createElement('div');
-  wrap.className = size === 'large' ? 'brand-detail-avatar' : 'brand-tile-avatar';
-
+function fillAvatarEl(el, name, imgFile) {
+  el.textContent = '';
+  const showInitials = function() {
+    el.textContent = '';
+    el.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
+  };
   if (imgFile) {
     const img = document.createElement('img');
     img.src = '/api/brand-img/' + encodeURIComponent(imgFile);
     img.alt = name;
     img.loading = 'lazy';
-    img.onerror = function() {
-      img.remove();
-      wrap.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
-    };
-    wrap.appendChild(img);
+    img.onerror = showInitials;
+    el.appendChild(img);
   } else {
-    wrap.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
+    showInitials();
   }
+}
+
+function buildAvatarForBrand(name, imgFile, size) {
+  const wrap = document.createElement('div');
+  wrap.className = size === 'large' ? 'brand-detail-avatar' : 'brand-tile-avatar';
+  fillAvatarEl(wrap, name, imgFile);
   return wrap;
 }
 
@@ -1653,19 +1684,11 @@ async function openBrand(brandName) {
   document.getElementById('size-filter-row').textContent = '';
   document.getElementById('brand-flavour-list').textContent = '';
 
-  // Re-build avatar
+  // Re-build avatar — fill the existing wrapper directly
   const avatarWrap = document.getElementById('brand-detail-avatar');
   avatarWrap.textContent = '';
   const brand = _brandsData && _brandsData.find(function(b) { return b.name === brandName; });
-  if (brand) {
-    const av = buildAvatarForBrand(brand.name, brand.brand_img, 'large');
-    av.className = 'brand-detail-avatar';
-    avatarWrap.appendChild(av.firstChild || av);
-    // restore correct class on wrapper
-    avatarWrap.className = 'brand-detail-avatar';
-    // re-append children
-    while (av.firstChild) avatarWrap.appendChild(av.firstChild);
-  }
+  fillAvatarEl(avatarWrap, brand ? brand.name : brandName, brand ? brand.brand_img : '');
 
   const listEl = document.getElementById('brand-flavour-list');
   listEl.appendChild(makeSpinner('Loading flavours…'));

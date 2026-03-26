@@ -235,13 +235,35 @@
       background: var(--card-hover);
     }
 
-    .flavour-img {
+    /* Brand logo avatar */
+    .brand-avatar {
       width: 52px; height: 52px;
-      border-radius: 8px;
-      object-fit: cover;
-      background: var(--border);
+      border-radius: 10px;
       flex-shrink: 0;
-      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--amber-glow);
+      border: 1px solid rgba(201,152,58,.3);
+      position: relative;
+    }
+
+    .brand-avatar img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      padding: 5px;
+    }
+
+    .brand-avatar-initials {
+      font-family: 'Playfair Display', serif;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: .02em;
+      text-align: center;
+      line-height: 1;
+      user-select: none;
     }
 
     .flavour-body { flex: 1; min-width: 0; }
@@ -896,20 +918,40 @@ function makeEl(tag, className, text) {
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
+function brandInitials(name) {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
+function buildBrandAvatar(f) {
+  const wrap = document.createElement('div');
+  wrap.className = 'brand-avatar';
+
+  // Try loading the brand image via our proxy; fall back to initials
+  if (f.brand_img) {
+    const img = document.createElement('img');
+    img.src = '/api/brand-img/' + encodeURIComponent(f.brand_img);
+    img.alt = f.marca;
+    img.loading = 'lazy';
+    img.onerror = function() {
+      img.remove();
+      const ini = makeEl('span', 'brand-avatar-initials', brandInitials(f.marca));
+      wrap.appendChild(ini);
+    };
+    wrap.appendChild(img);
+  } else {
+    wrap.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(f.marca)));
+  }
+  return wrap;
+}
+
 function buildCard(f) {
   const card = document.createElement('div');
   card.className = 'flavour-card';
 
-  // Image
-  const img = document.createElement(f.img ? 'img' : 'div');
-  img.className = 'flavour-img';
-  if (f.img) {
-    img.src = f.img;
-    img.alt = '';
-    img.loading = 'lazy';
-    img.onerror = function() { this.style.display = 'none'; };
-  }
-  card.appendChild(img);
+  card.appendChild(buildBrandAvatar(f));
 
   // Body
   const body = document.createElement('div');
@@ -1170,8 +1212,15 @@ function buildImportRow(row) {
   }
 
   const f = row.match;
-  div.appendChild(makeEl('div', 'flavour-brand', f.marca));
-  div.appendChild(makeEl('div', 'flavour-name', f.nombre));
+
+  const matchHeader = document.createElement('div');
+  matchHeader.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:8px';
+  matchHeader.appendChild(buildBrandAvatar(f));
+  const matchInfo = document.createElement('div');
+  matchInfo.appendChild(makeEl('div', 'flavour-brand', f.marca));
+  matchInfo.appendChild(makeEl('div', 'flavour-name', f.nombre));
+  matchHeader.appendChild(matchInfo);
+  div.appendChild(matchHeader);
 
   const sizeRow = buildSizeRow(f);
   sizeRow.style.marginTop = '8px';

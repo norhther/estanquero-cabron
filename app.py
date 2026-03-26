@@ -7,9 +7,10 @@ Fetching from the remote API only happens when explicitly requested via /api/ref
 
 import json
 import os
+import re
 import time
 import unicodedata
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_file, abort
 
 import requests as req
 from flavours import parse_formatos
@@ -18,8 +19,16 @@ app = Flask(__name__)
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 
-DATA_DIR      = os.path.join(os.path.dirname(__file__), "data")
-CATALOGUE_PATH = os.path.join(DATA_DIR, "catalogue.json")
+DATA_DIR        = os.path.join(os.path.dirname(__file__), "data")
+CATALOGUE_PATH  = os.path.join(DATA_DIR, "catalogue.json")
+BRAND_IMG_DIR   = os.path.join(DATA_DIR, "brand_imgs")
+
+# Known CDN patterns to try when fetching brand images.
+# The actual storage location is private; these are probed in order.
+_BRAND_IMG_BASES = [
+    "https://firebasestorage.googleapis.com/v0/b/hookymia-app.appspot.com/o/marcas%2F{name}?alt=media",
+    "https://firebasestorage.googleapis.com/v0/b/hookymia.appspot.com/o/marcas%2F{name}?alt=media",
+]
 API_URL       = "https://hookymia.es/api/get/index.php"
 
 _cache: dict = {"flavours": [], "loaded_at": 0}
@@ -35,15 +44,18 @@ def _fetch(tipo: str) -> list:
 
 
 def _build_flavours(marcas_raw: list, sabores_raw: list) -> list:
-    brands = {m["id"]: m["nombre"] for m in marcas_raw}
+    brands     = {m["id"]: m["nombre"] for m in marcas_raw}
+    brand_imgs = {m["id"]: m.get("img", "") for m in marcas_raw}
     flavours = []
     for s in sabores_raw:
         if s.get("retirado", "0") == "1":
             continue
+        mid = s.get("marca_id", "")
         flavours.append({
             "id":          s["id"],
             "nombre":      s["nombre"],
-            "marca":       brands.get(s.get("marca_id", ""), ""),
+            "marca":       brands.get(mid, ""),
+            "brand_img":   brand_imgs.get(mid, ""),
             "descripcion": s.get("descripcion", ""),
             "formatos":    parse_formatos(s.get("formatos", "")),
             "img":         s.get("img", ""),
@@ -151,6 +163,39 @@ def api_refresh():
         return jsonify({"ok": True, **info})
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 502
+
+
+@app.route("/api/brand-img/<path:filename>")
+def api_brand_img(filename: str):
+    """
+    Serve a brand logo image.
+    1. Check local cache in data/brand_imgs/
+    2. Try known CDN patterns
+    3. 404 if not found anywhere
+    """
+    # Sanitise: only allow safe filenames (letters, digits, spaces, dots, hyphens)
+    if not re.match(r'^[\w\s.\-]+$', filename):
+        abort(400)
+
+    os.makedirs(BRAND_IMG_DIR, exist_ok=True)
+    local_path = os.path.join(BRAND_IMG_DIR, filename)
+
+    if os.path.exists(local_path):
+        return send_file(local_path)
+
+    # Try remote sources
+    for pattern in _BRAND_IMG_BASES:
+        url = pattern.format(name=req.utils.quote(filename, safe=""))
+        try:
+            r = req.get(url, timeout=8)
+            if r.status_code == 200 and r.headers.get("content-type", "").startswith("image/"):
+                with open(local_path, "wb") as f:
+                    f.write(r.content)
+                return send_file(local_path)
+        except req.RequestException:
+            continue
+
+    abort(404)
 
 
 @app.route("/api/stats")

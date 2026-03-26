@@ -19,16 +19,31 @@ app = Flask(__name__)
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 
-DATA_DIR        = os.path.join(os.path.dirname(__file__), "data")
-CATALOGUE_PATH  = os.path.join(DATA_DIR, "catalogue.json")
-BRAND_IMG_DIR   = os.path.join(DATA_DIR, "brand_imgs")
+DATA_DIR          = os.path.join(os.path.dirname(__file__), "data")
+CATALOGUE_PATH    = os.path.join(DATA_DIR, "catalogue.json")
+BRAND_IMG_DIR     = os.path.join(DATA_DIR, "brand_imgs")
+BRAND_MISSING_PATH = os.path.join(DATA_DIR, "brand_imgs_missing.json")
 
-# Known CDN patterns to try when fetching brand images.
-# The actual storage location is private; these are probed in order.
 _BRAND_IMG_BASES = [
     "https://firebasestorage.googleapis.com/v0/b/hookymia-app.appspot.com/o/marcas%2F{name}?alt=media",
     "https://firebasestorage.googleapis.com/v0/b/hookymia.appspot.com/o/marcas%2F{name}?alt=media",
 ]
+
+# In-memory set of filenames confirmed not found — avoids any network round-trip on repeat requests.
+_brand_missing: set = set()
+
+def _load_brand_missing() -> None:
+    if os.path.exists(BRAND_MISSING_PATH):
+        try:
+            with open(BRAND_MISSING_PATH, encoding="utf-8") as f:
+                _brand_missing.update(json.load(f))
+        except (json.JSONDecodeError, OSError):
+            pass
+
+def _save_brand_missing() -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(BRAND_MISSING_PATH, "w", encoding="utf-8") as f:
+        json.dump(sorted(_brand_missing), f)
 API_URL       = "https://hookymia.es/api/get/index.php"
 
 _cache: dict = {"flavours": [], "loaded_at": 0}
@@ -213,13 +228,16 @@ def api_refresh():
 def api_brand_img(filename: str):
     """
     Serve a brand logo image.
-    1. Check local cache in data/brand_imgs/
-    2. Try known CDN patterns
-    3. 404 if not found anywhere
+    1. Already known missing → instant 404 (no network)
+    2. Local file cache → instant serve
+    3. Probe CDN URLs (1.5 s timeout each) → cache result
     """
-    # Sanitise: only allow safe filenames (letters, digits, spaces, dots, hyphens)
     if not re.match(r'^[\w\s.\-]+$', filename):
         abort(400)
+
+    # Instant 404 for known-missing images
+    if filename in _brand_missing:
+        abort(404)
 
     os.makedirs(BRAND_IMG_DIR, exist_ok=True)
     local_path = os.path.join(BRAND_IMG_DIR, filename)
@@ -227,11 +245,11 @@ def api_brand_img(filename: str):
     if os.path.exists(local_path):
         return send_file(local_path)
 
-    # Try remote sources
+    # Probe remote sources with a tight timeout
     for pattern in _BRAND_IMG_BASES:
         url = pattern.format(name=req.utils.quote(filename, safe=""))
         try:
-            r = req.get(url, timeout=8)
+            r = req.get(url, timeout=1.5)
             if r.status_code == 200 and r.headers.get("content-type", "").startswith("image/"):
                 with open(local_path, "wb") as f:
                     f.write(r.content)
@@ -239,6 +257,9 @@ def api_brand_img(filename: str):
         except req.RequestException:
             continue
 
+    # Mark as missing so next request is instant
+    _brand_missing.add(filename)
+    _save_brand_missing()
     abort(404)
 
 
@@ -253,6 +274,7 @@ def api_stats():
 
 
 if __name__ == "__main__":
+    _load_brand_missing()
     if _load_from_disk():
         print(f"Loaded {len(_cache['flavours'])} flavours from disk.")
     else:

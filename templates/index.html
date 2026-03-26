@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hookymia — Flavour Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0d0f;
+      --surface:  #161618;
+      --card:     #1c1c1f;
+      --border:   #2a2a2e;
+      --amber:    #d4a854;
+      --amber-dim:#9a7538;
+      --amber-glow: rgba(212,168,84,.12);
+      --text:     #e8e3da;
+      --text-dim: #8a8578;
+      --green:    #5a9e6f;
+      --radius:   10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      padding: 28px 36px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 20px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: .02em;
+    }
+
+    header .subtitle { font-size: .85rem; color: var(--text-dim); font-style: italic; }
+    .stats-badge { margin-left: auto; font-size: .75rem; color: var(--text-dim); }
+
+    .main { padding: 28px 36px; overflow-y: auto; }
+
+    .tabs { display: flex; gap: 6px; margin-bottom: 24px; }
+
+    .tab {
+      padding: 8px 18px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--text-dim);
+      font-family: inherit;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .18s;
+    }
+
+    .tab.active, .tab:hover {
+      background: var(--amber-glow);
+      border-color: var(--amber-dim);
+      color: var(--amber);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .search-wrap { position: relative; margin-bottom: 20px; }
+
+    .search-input {
+      width: 100%;
+      padding: 13px 16px 13px 42px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color .18s, box-shadow .18s;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--amber-dim);
+      box-shadow: 0 0 0 3px var(--amber-glow);
+    }
+
+    .search-icon {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim); font-size: 1rem; pointer-events: none;
+    }
+
+    .results { display: flex; flex-direction: column; gap: 10px; }
+
+    .flavour-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: border-color .18s;
+    }
+
+    .flavour-card:hover { border-color: var(--amber-dim); }
+
+    .flavour-img {
+      width: 48px; height: 48px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .flavour-body { flex: 1; min-width: 0; }
+
+    .flavour-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; font-weight: 600;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .flavour-brand {
+      font-size: .75rem; color: var(--amber);
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px;
+    }
+
+    .flavour-desc {
+      font-size: .8rem; color: var(--text-dim); margin-bottom: 8px;
+      line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+
+    .size-select { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .size-pill {
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border); background: none;
+      color: var(--text-dim); font-family: inherit; font-size: .75rem;
+      cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+
+    .size-pill:hover, .size-pill.selected {
+      background: var(--amber-glow); border-color: var(--amber-dim); color: var(--amber);
+    }
+
+    .add-btn {
+      margin-left: auto; padding: 6px 14px; border-radius: 6px;
+      border: 1px solid var(--amber-dim); background: var(--amber-glow);
+      color: var(--amber); font-family: inherit; font-size: .8rem;
+      cursor: pointer; transition: background .18s; white-space: nowrap;
+    }
+
+    .add-btn:hover { background: rgba(212,168,84,.25); }
+    .add-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .no-price { font-size: .75rem; color: var(--text-dim); font-style: italic; }
+
+    .import-area {
+      width: 100%; min-height: 160px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: .9rem;
+      padding: 14px; resize: vertical; outline: none;
+      transition: border-color .18s; margin-bottom: 12px;
+    }
+
+    .import-area:focus { border-color: var(--amber-dim); }
+
+    .import-btn {
+      padding: 10px 24px; border-radius: var(--radius);
+      border: none; background: var(--amber); color: #0d0d0f;
+      font-family: 'Playfair Display', serif; font-size: .95rem; font-weight: 700;
+      cursor: pointer; transition: opacity .18s;
+      display: block; margin-bottom: 20px;
+    }
+
+    .import-btn:hover { opacity: .85; }
+
+    .import-result { display: flex; flex-direction: column; gap: 10px; }
+
+    .import-row {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+
+    .import-query { font-size: .75rem; color: var(--text-dim); margin-bottom: 6px; }
+    .import-query em { color: var(--amber-dim); }
+    .import-no-match { font-size: .85rem; color: #b05a5a; }
+
+    .cart-panel {
+      border-left: 1px solid var(--border); display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh; overflow: hidden;
+    }
+
+    .cart-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--border); }
+
+    .cart-header h2 {
+      font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--amber);
+    }
+
+    .cart-items {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .cart-empty {
+      color: var(--text-dim); font-size: .85rem; font-style: italic;
+      text-align: center; margin-top: 40px;
+    }
+
+    .cart-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px;
+      animation: slideIn .2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .cart-item-name { font-family: 'Playfair Display', serif; font-size: .9rem; margin-bottom: 2px; }
+
+    .cart-item-brand {
+      font-size: .7rem; color: var(--amber);
+      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px;
+    }
+
+    .cart-item-controls { display: flex; align-items: center; gap: 8px; }
+
+    .cart-size-select {
+      flex: 1; background: var(--card); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: inherit;
+      font-size: .8rem; padding: 4px 8px;
+    }
+
+    .cart-price { font-size: .9rem; color: var(--amber); font-weight: 500; min-width: 50px; text-align: right; }
+
+    .cart-remove {
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 1rem; padding: 2px 4px; transition: color .15s;
+    }
+
+    .cart-remove:hover { color: #b05a5a; }
+
+    .cart-footer { padding: 18px 24px; border-top: 1px solid var(--border); }
+
+    .cart-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .cart-total-label { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--text-dim); }
+    .cart-total-value { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--amber); font-weight: 700; }
+
+    .cart-clear {
+      width: 100%; padding: 9px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: none;
+      color: var(--text-dim); font-family: inherit; font-size: .85rem;
+      cursor: pointer; transition: all .15s;
+    }
+
+    .cart-clear:hover { border-color: #b05a5a; color: #b05a5a; }
+
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid var(--border); border-top-color: var(--amber);
+      border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      .cart-panel { position: fixed; bottom: 0; left: 0; right: 0; height: auto; max-height: 50vh; border-left: none; border-top: 1px solid var(--border); }
+      .main { padding-bottom: 200px; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <header>
+    <h1>Hookymia</h1>
+    <span class="subtitle">flavour shop</span>
+    <span class="stats-badge" id="stats-badge">loading catalogue…</span>
+  </header>
+
+  <main class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('search', this)">Search</button>
+      <button class="tab" onclick="switchTab('import', this)">Import list</button>
+    </div>
+
+    <div id="panel-search" class="panel active">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input id="search-input" class="search-input" type="text"
+               placeholder="Search by flavour name, brand, description…"
+               autocomplete="off" />
+      </div>
+      <div id="results" class="results"></div>
+    </div>
+
+    <div id="panel-import" class="panel">
+      <textarea id="import-area" class="import-area"
+        placeholder="Paste your list here, one item per line.
+
+Example:
+Ornj team
+Breezzy bum (serbetli)
+Hype hater
+Pump King Pleasure haze"></textarea>
+      <button class="import-btn" onclick="runImport()">Find matches</button>
+      <div id="import-result" class="import-result"></div>
+    </div>
+  </main>
+
+  <aside class="cart-panel">
+    <div class="cart-header"><h2>Cart</h2></div>
+    <div class="cart-items" id="cart-items">
+      <p class="cart-empty" id="cart-empty">Your cart is empty</p>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-value" id="cart-total">0.00 €</span>
+      </div>
+      <button class="cart-clear" onclick="clearCart()">Clear cart</button>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+const cart = [];
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+fetch('/api/stats').then(r => r.json()).then(data => {
+  document.getElementById('stats-badge').textContent =
+    data.count.toLocaleString() + ' flavours';
+});
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+let searchTimer = null;
+
+document.getElementById('search-input').addEventListener('input', function(e) {
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (!q) { document.getElementById('results').textContent = ''; return; }
+  searchTimer = setTimeout(function() { doSearch(q); }, 280);
+});
+
+async function doSearch(q) {
+  const el = document.getElementById('results');
+  el.textContent = '';
+  const spinner = makeSpinner();
+  el.appendChild(spinner);
+
+  const res = await fetch('/api/search?q=' + encodeURIComponent(q));
+  const data = await res.json();
+  el.textContent = '';
+
+  if (!data.length) {
+    const msg = document.createElement('p');
+    msg.style.cssText = 'color:var(--text-dim);font-style:italic';
+    msg.textContent = 'No results found.';
+    el.appendChild(msg);
+    return;
+  }
+  data.forEach(f => el.appendChild(buildCard(f)));
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+function makeSpinner() {
+  const s = document.createElement('div');
+  s.className = 'spinner';
+  return s;
+}
+
+function makeEl(tag, opts) {
+  const el = document.createElement(tag);
+  if (opts.className) el.className = opts.className;
+  if (opts.text !== undefined) el.textContent = opts.text;
+  if (opts.style) el.style.cssText = opts.style;
+  if (opts.attrs) Object.entries(opts.attrs).forEach(([k, v]) => el.setAttribute(k, v));
+  if (opts.on) Object.entries(opts.on).forEach(([k, v]) => el.addEventListener(k, v));
+  return el;
+}
+
+// ── Card builder ──────────────────────────────────────────────────────────────
+function buildCard(f) {
+  const card = document.createElement('div');
+  card.className = 'flavour-card';
+
+  // Image
+  if (f.img) {
+    const img = document.createElement('img');
+    img.className = 'flavour-img';
+    img.alt = '';
+    img.loading = 'lazy';
+    img.src = f.img;
+    img.onerror = function() { this.style.display = 'none'; };
+    card.appendChild(img);
+  } else {
+    card.appendChild(makeEl('div', { className: 'flavour-img' }));
+  }
+
+  const body = document.createElement('div');
+  body.className = 'flavour-body';
+
+  body.appendChild(makeEl('div', { className: 'flavour-brand', text: f.marca }));
+  body.appendChild(makeEl('div', { className: 'flavour-name', text: f.nombre }));
+  if (f.descripcion) {
+    body.appendChild(makeEl('div', { className: 'flavour-desc', text: f.descripcion }));
+  }
+
+  body.appendChild(buildSizeRow(f));
+  card.appendChild(body);
+  return card;
+}
+
+function buildSizeRow(f) {
+  const row = document.createElement('div');
+  row.className = 'size-select';
+
+  if (!f.formatos || !f.formatos.length) {
+    row.appendChild(makeEl('span', { className: 'no-price', text: 'No price info' }));
+    return row;
+  }
+
+  f.formatos.forEach(function(fmt, i) {
+    const pill = document.createElement('button');
+    pill.className = 'size-pill' + (i === 0 ? ' selected' : '');
+    pill.dataset.grams = fmt.grams;
+    pill.dataset.price = fmt.price;
+    pill.textContent = fmt.grams + 'g — ' + fmt.price.toFixed(2) + '\u20AC';
+    pill.addEventListener('click', function() { selectSize(pill); });
+    row.appendChild(pill);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.textContent = 'Add to cart';
+  addBtn.style.marginLeft = 'auto';
+  addBtn.addEventListener('click', function() {
+    addToCartFromRow(row, f, addBtn);
+  });
+  row.appendChild(addBtn);
+  return row;
+}
+
+function selectSize(pill) {
+  const group = pill.closest('.size-select');
+  group.querySelectorAll('.size-pill').forEach(function(p) { p.classList.remove('selected'); });
+  pill.classList.add('selected');
+}
+
+function addToCartFromRow(row, f, btn) {
+  const selected = row.querySelector('.size-pill.selected');
+  if (!selected) return;
+
+  const grams = parseInt(selected.dataset.grams);
+  const price = parseFloat(selected.dataset.price);
+
+  if (cart.find(function(i) { return i.id === f.id && i.selectedGrams === grams; })) {
+    flashBtn(btn, 'Already added');
+    return;
+  }
+
+  cart.push({ id: f.id, nombre: f.nombre, marca: f.marca, formatos: f.formatos,
+              selectedGrams: grams, selectedPrice: price });
+  renderCart();
+  flashBtn(btn, 'Added!');
+}
+
+function flashBtn(btn, msg) {
+  const orig = btn.textContent;
+  btn.textContent = msg;
+  btn.disabled = true;
+  setTimeout(function() { btn.textContent = orig; btn.disabled = false; }, 1200);
+}
+
+// ── Cart ──────────────────────────────────────────────────────────────────────
+function renderCart() {
+  const el = document.getElementById('cart-items');
+  el.textContent = '';
+
+  if (!cart.length) {
+    const empty = document.createElement('p');
+    empty.className = 'cart-empty';
+    empty.textContent = 'Your cart is empty';
+    el.appendChild(empty);
+    document.getElementById('cart-total').textContent = '0.00 \u20AC';
+    return;
+  }
+
+  let total = 0;
+  cart.forEach(function(item, idx) {
+    total += item.selectedPrice;
+
+    const div = document.createElement('div');
+    div.className = 'cart-item';
+
+    div.appendChild(makeEl('div', { className: 'cart-item-brand', text: item.marca }));
+    div.appendChild(makeEl('div', { className: 'cart-item-name', text: item.nombre }));
+
+    const controls = document.createElement('div');
+    controls.className = 'cart-item-controls';
+
+    const sel = document.createElement('select');
+    sel.className = 'cart-size-select';
+    item.formatos.forEach(function(fmt) {
+      const opt = document.createElement('option');
+      opt.value = fmt.grams;
+      opt.dataset.price = fmt.price;
+      opt.textContent = fmt.grams + 'g \u2014 ' + fmt.price.toFixed(2) + '\u20AC';
+      if (fmt.grams === item.selectedGrams) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function() { changeCartSize(idx, sel); });
+
+    const priceEl = makeEl('span', {
+      className: 'cart-price',
+      text: item.selectedPrice.toFixed(2) + '\u20AC'
+    });
+
+    const removeBtn = makeEl('button', {
+      className: 'cart-remove', text: '\u2715'
+    });
+    removeBtn.addEventListener('click', function() { removeFromCart(idx); });
+
+    controls.appendChild(sel);
+    controls.appendChild(priceEl);
+    controls.appendChild(removeBtn);
+    div.appendChild(controls);
+    el.appendChild(div);
+  });
+
+  document.getElementById('cart-total').textContent = total.toFixed(2) + ' \u20AC';
+}
+
+function changeCartSize(idx, sel) {
+  const opt = sel.options[sel.selectedIndex];
+  cart[idx].selectedGrams = parseInt(sel.value);
+  cart[idx].selectedPrice = parseFloat(opt.dataset.price);
+  renderCart();
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  renderCart();
+}
+
+function clearCart() {
+  cart.length = 0;
+  renderCart();
+}
+
+// ── Import ────────────────────────────────────────────────────────────────────
+async function runImport() {
+  const raw = document.getElementById('import-area').value.trim();
+  if (!raw) return;
+
+  const lines = raw.split('\n').filter(function(l) { return l.trim(); });
+  const resultEl = document.getElementById('import-result');
+  resultEl.textContent = '';
+  resultEl.appendChild(makeSpinner());
+
+  const res = await fetch('/api/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lines: lines }),
+  });
+  const data = await res.json();
+
+  resultEl.textContent = '';
+  data.forEach(function(row) {
+    resultEl.appendChild(buildImportRow(row));
+  });
+}
+
+function buildImportRow(row) {
+  const div = document.createElement('div');
+  div.className = 'import-row';
+
+  const queryLine = document.createElement('div');
+  queryLine.className = 'import-query';
+  queryLine.textContent = 'Query: ';
+  const em = document.createElement('em');
+  em.textContent = '"' + row.query + '"';
+  queryLine.appendChild(em);
+  div.appendChild(queryLine);
+
+  if (!row.match) {
+    div.appendChild(makeEl('div', { className: 'import-no-match', text: 'No match found' }));
+    return div;
+  }
+
+  const f = row.match;
+
+  div.appendChild(makeEl('div', { className: 'flavour-brand', text: f.marca, style: 'margin-top:4px' }));
+  div.appendChild(makeEl('div', { className: 'flavour-name', text: f.nombre }));
+
+  const sizeRow = buildSizeRow(f);
+  sizeRow.style.marginTop = '8px';
+  div.appendChild(sizeRow);
+
+  return div;
+}
+</script>
+</body>
+</html>

@@ -453,7 +453,15 @@ function buildCartItem(item, idx) {
     else removeFromCart(idx);
   });
 
-  var qtyNum = makeEl('span', 'ci-qty-num', item.qty);
+  var qtyNum = document.createElement('input');
+  qtyNum.type = 'number'; qtyNum.min = '1'; qtyNum.value = item.qty;
+  qtyNum.className = 'ci-qty-num';
+  qtyNum.addEventListener('change', function() {
+    var v = parseInt(qtyNum.value);
+    if (!v || v < 1) { removeFromCart(idx); return; }
+    cart[idx].qty = v;
+    renderCart();
+  });
 
   var incBtn = makeEl('button', 'ci-qty-btn', '+');
   incBtn.addEventListener('click', function() { cart[idx].qty++; renderCart(); });

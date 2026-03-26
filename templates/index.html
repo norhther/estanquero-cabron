@@ -607,18 +607,23 @@
     .ci-qty-btn:hover { background: var(--border); color: var(--text); }
 
     .ci-qty-num {
-      min-width: 26px;
+      width: 36px;
       text-align: center;
       font-size: .82rem;
       font-weight: 600;
       color: var(--text);
       background: var(--card);
+      border: none;
       border-left: 1px solid var(--border);
       border-right: 1px solid var(--border);
-      padding: 0 2px;
       height: 26px;
-      display: flex; align-items: center; justify-content: center;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      -moz-appearance: textfield;
     }
+    .ci-qty-num::-webkit-outer-spin-button,
+    .ci-qty-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
     .ci-price {
       font-size: .88rem;
@@ -1454,7 +1459,15 @@ function buildCartItem(item, idx) {
     else removeFromCart(idx);
   });
 
-  const qtyNum = makeEl('span', 'ci-qty-num', item.qty);
+  const qtyNum = document.createElement('input');
+  qtyNum.type = 'number'; qtyNum.min = '1'; qtyNum.value = item.qty;
+  qtyNum.className = 'ci-qty-num';
+  qtyNum.addEventListener('change', function() {
+    const v = parseInt(qtyNum.value);
+    if (!v || v < 1) { removeFromCart(idx); return; }
+    cart[idx].qty = v;
+    renderCart();
+  });
 
   const incBtn = makeEl('button', 'ci-qty-btn', '+');
   incBtn.addEventListener('click', function() { cart[idx].qty++; renderCart(); });

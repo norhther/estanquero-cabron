@@ -293,6 +293,23 @@ function buildSizeRow(f) {
     row.appendChild(pill);
   });
 
+  // Quantity stepper
+  var qtyWrap = makeEl('div', 'size-qty');
+  var decBtn  = makeEl('button', 'size-qty-btn', '\u2212');
+  var qtyNum  = makeEl('span', 'size-qty-num', '1');
+  var incBtn  = makeEl('button', 'size-qty-btn', '+');
+  decBtn.addEventListener('click', function() {
+    var v = parseInt(qtyNum.textContent);
+    if (v > 1) qtyNum.textContent = v - 1;
+  });
+  incBtn.addEventListener('click', function() {
+    qtyNum.textContent = parseInt(qtyNum.textContent) + 1;
+  });
+  qtyWrap.appendChild(decBtn);
+  qtyWrap.appendChild(qtyNum);
+  qtyWrap.appendChild(incBtn);
+  row.appendChild(qtyWrap);
+
   var addBtn = makeEl('button', 'add-btn', 'Add to cart');
   addBtn.addEventListener('click', function() { addToCartFromRow(row, f, addBtn); });
   row.appendChild(addBtn);
@@ -311,17 +328,19 @@ function addToCartFromRow(row, f, btn) {
 
   var grams = parseInt(selected.dataset.grams);
   var price = parseFloat(selected.dataset.price);
+  var qtyEl = row.querySelector('.size-qty-num');
+  var qty   = qtyEl ? Math.max(1, parseInt(qtyEl.textContent) || 1) : 1;
   var existing = cart.find(function(i) { return i.id === f.id && i.selectedGrams === grams; });
 
   if (existing) {
-    existing.qty++;
+    existing.qty += qty;
     renderCart();
-    flashBtn(btn, '+1 added', true);
+    flashBtn(btn, '+' + qty + ' added', true);
     return;
   }
 
   cart.push({ id: f.id, nombre: f.nombre, marca: f.marca,
-              formatos: f.formatos, selectedGrams: grams, selectedPrice: price, qty: 1 });
+              formatos: f.formatos, selectedGrams: grams, selectedPrice: price, qty: qty });
   renderCart();
   flashBtn(btn, 'Added!', true);
 }

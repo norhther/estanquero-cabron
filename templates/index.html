@@ -329,18 +329,23 @@
     .size-qty-btn:hover { background: var(--border); color: var(--text); }
 
     .size-qty-num {
-      min-width: 26px;
+      width: 36px;
       text-align: center;
       font-size: .78rem;
       font-weight: 600;
       color: var(--text);
       background: var(--card);
+      border: none;
       border-left: 1px solid var(--border);
       border-right: 1px solid var(--border);
       height: 24px;
-      display: flex; align-items: center; justify-content: center;
-      user-select: none;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      -moz-appearance: textfield;
     }
+    .size-qty-num::-webkit-outer-spin-button,
+    .size-qty-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
     .add-btn {
       padding: 5px 14px;
@@ -1276,14 +1281,20 @@ function buildSizeRow(f) {
   // Quantity stepper (before pills so pills can reference qtyNum)
   const qtyWrap = makeEl('div', 'size-qty');
   const decBtn  = makeEl('button', 'size-qty-btn', '\u2212');
-  const qtyNum  = makeEl('span', 'size-qty-num', '1');
+  const qtyNum  = document.createElement('input');
+  qtyNum.type = 'number'; qtyNum.min = '1'; qtyNum.value = '1';
+  qtyNum.className = 'size-qty-num';
+  qtyNum.addEventListener('click', function(e) { e.stopPropagation(); });
+  qtyNum.addEventListener('change', function() {
+    if (!qtyNum.value || parseInt(qtyNum.value) < 1) qtyNum.value = '1';
+  });
   const incBtn  = makeEl('button', 'size-qty-btn', '+');
   decBtn.addEventListener('click', function() {
-    const v = parseInt(qtyNum.textContent);
-    if (v > 1) qtyNum.textContent = v - 1;
+    const v = parseInt(qtyNum.value) || 1;
+    if (v > 1) qtyNum.value = v - 1;
   });
   incBtn.addEventListener('click', function() {
-    qtyNum.textContent = parseInt(qtyNum.textContent) + 1;
+    qtyNum.value = (parseInt(qtyNum.value) || 1) + 1;
   });
   qtyWrap.appendChild(decBtn);
   qtyWrap.appendChild(qtyNum);
@@ -1318,7 +1329,7 @@ function addToCartFromRow(row, f, pill) {
   const grams = parseInt(selected.dataset.grams);
   const price = parseFloat(selected.dataset.price);
   const qtyEl = row.querySelector('.size-qty-num');
-  const qty   = qtyEl ? Math.max(1, parseInt(qtyEl.textContent) || 1) : 1;
+  const qty   = qtyEl ? Math.max(1, parseInt(qtyEl.value) || 1) : 1;
   const existing = cart.find(function(i) { return i.id === f.id && i.selectedGrams === grams; });
 
   if (existing) {

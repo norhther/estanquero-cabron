@@ -287,14 +287,20 @@ function buildSizeRow(f) {
   // Quantity stepper
   var qtyWrap = makeEl('div', 'size-qty');
   var decBtn  = makeEl('button', 'size-qty-btn', '\u2212');
-  var qtyNum  = makeEl('span', 'size-qty-num', '1');
+  var qtyNum  = document.createElement('input');
+  qtyNum.type = 'number'; qtyNum.min = '1'; qtyNum.value = '1';
+  qtyNum.className = 'size-qty-num';
+  qtyNum.addEventListener('click', function(e) { e.stopPropagation(); });
+  qtyNum.addEventListener('change', function() {
+    if (!qtyNum.value || parseInt(qtyNum.value) < 1) qtyNum.value = '1';
+  });
   var incBtn  = makeEl('button', 'size-qty-btn', '+');
   decBtn.addEventListener('click', function() {
-    var v = parseInt(qtyNum.textContent);
-    if (v > 1) qtyNum.textContent = v - 1;
+    var v = parseInt(qtyNum.value) || 1;
+    if (v > 1) qtyNum.value = v - 1;
   });
   incBtn.addEventListener('click', function() {
-    qtyNum.textContent = parseInt(qtyNum.textContent) + 1;
+    qtyNum.value = (parseInt(qtyNum.value) || 1) + 1;
   });
   qtyWrap.appendChild(decBtn);
   qtyWrap.appendChild(qtyNum);
@@ -329,7 +335,7 @@ function addToCartFromRow(row, f, pill) {
   var grams = parseInt(selected.dataset.grams);
   var price = parseFloat(selected.dataset.price);
   var qtyEl = row.querySelector('.size-qty-num');
-  var qty   = qtyEl ? Math.max(1, parseInt(qtyEl.textContent) || 1) : 1;
+  var qty   = qtyEl ? Math.max(1, parseInt(qtyEl.value) || 1) : 1;
   var existing = cart.find(function(i) { return i.id === f.id && i.selectedGrams === grams; });
 
   if (existing) {

@@ -1588,28 +1588,15 @@ function buildImportRow(row) {
 let _brandsData = null;          // full list from /api/brands
 let _activeSizeFilter = null;    // currently selected gram filter in detail view
 
-function fillAvatarEl(el, name, imgFile) {
+function fillAvatarEl(el, name) {
   el.textContent = '';
-  const showInitials = function() {
-    el.textContent = '';
-    el.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
-  };
-  if (imgFile) {
-    const img = document.createElement('img');
-    img.src = '/api/brand-img/' + encodeURIComponent(imgFile);
-    img.alt = name;
-    img.loading = 'lazy';
-    img.onerror = showInitials;
-    el.appendChild(img);
-  } else {
-    showInitials();
-  }
+  el.appendChild(makeEl('span', 'brand-avatar-initials', brandInitials(name)));
 }
 
-function buildAvatarForBrand(name, imgFile, size) {
+function buildAvatarForBrand(name, size) {
   const wrap = document.createElement('div');
   wrap.className = size === 'large' ? 'brand-detail-avatar' : 'brand-tile-avatar';
-  fillAvatarEl(wrap, name, imgFile);
+  fillAvatarEl(wrap, name);
   return wrap;
 }
 
@@ -1637,7 +1624,7 @@ function renderBrandsGrid(brands) {
     tile.className = 'brand-tile';
     tile.dataset.name = b.name.toLowerCase();
 
-    tile.appendChild(buildAvatarForBrand(b.name, b.brand_img, 'small'));
+    tile.appendChild(buildAvatarForBrand(b.name, 'small'));
     tile.appendChild(makeEl('div', 'brand-tile-name', b.name));
 
     const meta = document.createElement('div');
@@ -1688,7 +1675,7 @@ async function openBrand(brandName) {
   const avatarWrap = document.getElementById('brand-detail-avatar');
   avatarWrap.textContent = '';
   const brand = _brandsData && _brandsData.find(function(b) { return b.name === brandName; });
-  fillAvatarEl(avatarWrap, brand ? brand.name : brandName, brand ? brand.brand_img : '');
+  fillAvatarEl(avatarWrap, brand ? brand.name : brandName);
 
   const listEl = document.getElementById('brand-flavour-list');
   listEl.appendChild(makeSpinner('Loading flavours…'));
